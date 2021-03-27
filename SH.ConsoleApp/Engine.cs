@@ -19,21 +19,21 @@ namespace SH.ConsoleApp
 
     private readonly ILogger _logger;
     private readonly IHostApplicationLifetime _appLifetime;
-    private readonly IServiceProvider _serviceProvider;
     private readonly CommandLineArgs _args;
+    private readonly IServiceCollection _serviceCollection;
 
     // Constructor has to be public for Dependency Injection to work.
     // The ServiceProvider cannot access internal constructors.
     public Engine(
       ILogger<Engine> logger,
       IHostApplicationLifetime appLifetime,
-      IServiceProvider serviceProvider,
-      CommandLineArgs args)
+      CommandLineArgs args,
+      IServiceCollection serviceCollection)
     {
       _logger = logger ?? throw new ArgumentNullException(nameof(logger));
       _appLifetime = appLifetime ?? throw new ArgumentNullException(nameof(appLifetime));
-      _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
       _args = args ?? throw new ArgumentNullException(nameof(args));
+      _serviceCollection = serviceCollection ?? throw new ArgumentNullException(nameof(serviceCollection));
     }
 
     public Task StartAsync(CancellationToken cancellationToken)
@@ -56,6 +56,9 @@ namespace SH.ConsoleApp
             var commandTree = builder.BuildBaseTree();
             var availableCommands = commandTree.CommandGroups.SelectMany(q => q.AvailableCommands).ToList();
 
+            // Add the commandTree to the servicecollection so the help-command can access and use it.
+            _serviceCollection.AddSingleton(commandTree);
+
             // Parse input
             ParsedInput parsedInput = null;
             var parser = new InputParser(availableCommands);
@@ -65,11 +68,10 @@ namespace SH.ConsoleApp
             var commandMatch = commandTree.FindCommand(parsedInput);
 
             // Run command using CommandRunner:
-            var runner = ActivatorUtilities.CreateInstance<CommandRunner>(_serviceProvider);
+            var runner = ActivatorUtilities.CreateInstance<CommandRunner>(_serviceCollection.BuildServiceProvider());
             runner.RunCommand(commandMatch.Command, parsedInput.Options, parsedInput.Arguments);
 
             _exitCode = 0;
-
           }
           catch (Exception ex)
           {

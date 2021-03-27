@@ -14,7 +14,7 @@ namespace SH.ConsoleApp
     {
       builder.ConfigureServices((hostContext, services) =>
       {
-        services.AddSingleton(services.BuildServiceProvider());
+        services.AddSingleton(services);
         services.AddSingleton(new CommandLineArgs(args));
         services.AddHostedService<Engine>();
       });
