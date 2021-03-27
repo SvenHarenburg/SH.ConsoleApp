@@ -13,5 +13,8 @@ namespace SH.ConsoleApp.Core
     public CommandAttribute CommandAttribute { get; set; }
     public List<Option> Options { get; set; } = new List<Option>();
     public List<Argument> Arguments { get; set; } = new List<Argument>();
+
+    // Reference to the CommandGroup this Command belongs to.
+    public CommandGroup CommandGroup { get; set; }    
   }
 }

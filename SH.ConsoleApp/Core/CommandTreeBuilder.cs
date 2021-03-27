@@ -88,9 +88,20 @@ namespace SH.ConsoleApp.Core
           var command = new Command()
           {
             CommandMethodInfo = method,
-            CommandAttribute = commandAttribute
+            CommandAttribute = commandAttribute,
+            CommandGroup = commandGroup
           };
           commandGroup.Commands.Add(command);
+        }
+
+        // Add help-command for every CommandGroup that is not the Help-CommandGroup:
+        if (commandGroup.CommandGroupType != typeof(Commands.HelpCommand))
+        {
+          var helpCommand = new Command();
+          helpCommand.CommandMethodInfo = typeof(Commands.HelpCommand).GetMethod(nameof(Commands.HelpCommand.CommandGroupHelp));
+          helpCommand.CommandAttribute = new CommandAttribute("help", "Shows help for the CommandGroup.");
+          helpCommand.CommandGroup = commandGroup;
+          commandGroup.Commands.Add(helpCommand);
         }
       }
     }

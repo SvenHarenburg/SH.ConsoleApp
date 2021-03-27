@@ -25,6 +25,14 @@ namespace SH.ConsoleApp.Core
 
       foreach (var parameterInfo in command.CommandMethodInfo.GetParameters())
       {
+        // Special parameter of type CommandGroup, just pass the CommandGroup-instance.
+        // This is utilized by the HelpCommand to output help for a CommandGroup.
+        if (parameterInfo.ParameterType == typeof(CommandGroup))
+        {
+          parameters.Add(command.CommandGroup);
+          continue;
+        }
+
         var isOption = false;
         var isArgument = false;
 
