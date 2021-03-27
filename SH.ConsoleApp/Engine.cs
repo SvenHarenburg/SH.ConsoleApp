@@ -49,7 +49,10 @@ namespace SH.ConsoleApp
             _logger.LogInformation("EngineService => Register");
 
             // Build command tree:
-            var builder = new CommandTreeBuilder(Assembly.GetEntryAssembly());
+            // ExecutingAssembly: SH.ConsoleApp to include Commands provided by this library.
+            // EntryAssembly: The Assembly referencing SH.ConsoleApp.
+            var assemblies = new Assembly[2] { Assembly.GetExecutingAssembly(), Assembly.GetEntryAssembly() };
+            var builder = new CommandTreeBuilder(assemblies);
             var commandTree = builder.BuildBaseTree();
             var availableCommands = commandTree.CommandGroups.SelectMany(q => q.AvailableCommands).ToList();
 

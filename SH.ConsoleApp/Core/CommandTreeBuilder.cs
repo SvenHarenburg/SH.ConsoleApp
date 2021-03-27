@@ -12,7 +12,7 @@ namespace SH.ConsoleApp.Core
   /// </summary>
   internal class CommandTreeBuilder
   {
-    private readonly Assembly _assembly;
+    private readonly Assembly[] _assemblies;
     private CommandTree _commandTree;
 
     /// <summary>
@@ -21,7 +21,17 @@ namespace SH.ConsoleApp.Core
     /// <param name="assembly">The <see cref="Assembly"/> which should be searched for <see cref="CommandGroup"/>s and <see cref="Command"/>s.</param>
     public CommandTreeBuilder(Assembly assembly)
     {
-      _assembly = assembly ?? throw new ArgumentNullException(nameof(assembly));
+      if (assembly == null) throw new ArgumentNullException(nameof(assembly));
+      _assemblies = new Assembly[1] { assembly };
+    }
+
+    /// <summary>
+    /// Initializes a new instance of <see cref="CommandTreeBuilder"/>.
+    /// </summary>
+    /// <param name="assemblies">An array of <see cref="Assembly"/>-objects which should be searched for <see cref="CommandGroup"/>s and <see cref="Command"/>s.</param>
+    public CommandTreeBuilder(Assembly[] assemblies)
+    {
+      _assemblies = assemblies ?? throw new ArgumentNullException(nameof(assemblies));
     }
 
     /// <summary>
@@ -117,15 +127,16 @@ namespace SH.ConsoleApp.Core
       }).ToList();
     }
 
-
     /// <summary>
-    /// Searches the <see cref="Assembly"/> for <see cref="Type"/>s that represent a <see cref="CommandGroup"/>.
+    /// Searches the <see cref="Assembly"/>-objects for <see cref="Type"/>s that represent a <see cref="CommandGroup"/>.
     /// </summary>
     /// <returns>An <see cref="IEnumerable{Type}"/> containing <see cref="Type"/>s that represent a <see cref="CommandGroup"/>.</returns>
     /// <remarks>A <see cref="Type"/> representing a <see cref="CommandGroup"/> is currently defined by having the <see cref="CommandGroupAttribute"/> applied to it.</remarks>
     private IEnumerable<Type> GetCommandGroupTypes()
     {
-      return _assembly.GetTypes().Where(q => q.GetCustomAttribute<CommandGroupAttribute>() != null);
+      return _assemblies
+        .SelectMany(q => q.GetTypes())
+        .Where(q => q.GetCustomAttribute<CommandGroupAttribute>() != null);
     }
 
     /// <summary>
