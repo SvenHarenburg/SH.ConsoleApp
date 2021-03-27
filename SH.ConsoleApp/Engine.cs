@@ -56,16 +56,7 @@ namespace SH.ConsoleApp
             // Parse input
             ParsedInput parsedInput = null;
             var parser = new InputParser(availableCommands);
-            if (_args.Args.Length == 0)
-            {
-              var rawInput = "search c someOption:5 --filter:456";
-              var inputArray = rawInput.Split(' ');
-              parsedInput = parser.ParseInput(inputArray);
-            }
-            else
-            {
-              parsedInput = parser.ParseInput(_args.Args);
-            }
+            parsedInput = parser.ParseInput(_args.Args);
 
             // Match input to Command:
             var commandMatch = commandTree.FindCommand(parsedInput);
