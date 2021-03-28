@@ -37,21 +37,42 @@ namespace SH.ConsoleApp.Commands
       var appName = Assembly.GetEntryAssembly().GetName().Name;
 
       Console.WriteLine($"Command group: {commandGroup.Name}");
-      Console.WriteLine($"Available commands:");
 
-      // Print all the commands except the help command itself.
+      // Print all the commands except the help command itself(that's the one we're currently in).
       // Use the MethodHandle to compare.
       var currentMethodHandle = MethodBase.GetCurrentMethod().MethodHandle;
-      var dictionary = commandGroup.Commands
-        .Where(q => !q.CommandMethodInfo.MethodHandle.Equals(currentMethodHandle))
-        .ToDictionary(key => key.CommandAttribute.Name, value => value.CommandAttribute.Description);
-      ConsoleUtilities.WriteDictionary(dictionary, 5);
+      var commands = commandGroup.Commands
+        .Where(q => !q.CommandMethodInfo.MethodHandle.Equals(currentMethodHandle));
+
+      Console.WriteLine($"Syntax: {appName} {commandGroup.Name} [command] [option:value] [[--]argument:value]");
 
       Console.WriteLine();
-      //Console.WriteLine($"Run \"{appName} [command] help\" to get help for a specific command.");
+      Console.WriteLine($"Available commands:");
+      foreach (var command in commands)
+      {
+        CommandTreeBuilder.FillOptionsAndArguments(command);
+        Console.WriteLine($"{command.CommandAttribute.Name} - {command.CommandAttribute.Description}");
+
+        if (command.Options.Any())
+        {
+          Console.WriteLine($"  Options:");
+          ConsoleUtilities.WriteDictionary(
+            command.Options.ToDictionary(key => key.CommandOptionAttribute.Name, value => value.CommandOptionAttribute.Description),
+            5, 4);
+        }
+
+        if (command.Arguments.Any())
+        {
+          Console.WriteLine($"  Arguments:");
+          ConsoleUtilities.WriteDictionary(
+            command.Arguments.ToDictionary(key => key.CommandArgumentAttribute.Name, value => value.CommandArgumentAttribute.Description),
+            5, 4);
+        }
+        Console.WriteLine();
+      }
+
+      Console.WriteLine();      
     }
-
-
 
     [Command("test1", "description")]
     public void Execute1() { }
