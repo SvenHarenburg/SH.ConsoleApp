@@ -68,6 +68,12 @@ namespace SH.ConsoleApp.Commands
             command.Arguments.ToDictionary(key => key.CommandArgumentAttribute.Name, value => value.CommandArgumentAttribute.Description),
             5, 4);
         }
+
+        if (!string.IsNullOrWhiteSpace(command.CommandAttribute.ExampleUsage))
+        {
+          Console.WriteLine($"  Example usage:");
+          Console.WriteLine($"    {command.CommandAttribute.ExampleUsage}");
+        }
         Console.WriteLine();
       }
 
