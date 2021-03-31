@@ -19,8 +19,8 @@ namespace SH.ConsoleApp
     {
       if (dictionary == null) throw new ArgumentNullException(nameof(dictionary));
 
-      var longestKey = dictionary.Keys.Max(q => q.Length);      
-      foreach(var item in dictionary)
+      var longestKey = dictionary.Keys.Max(q => q.Length);
+      foreach (var item in dictionary)
       {
         for (int i = 0; i < indent; i++)
         {
@@ -30,6 +30,69 @@ namespace SH.ConsoleApp
         Console.Write(item.Value);
         Console.WriteLine();
       }
+    }
+
+    public static void WriteTable(string[,] data)
+    {
+      var columns = data.GetUpperBound(1) + 1; // +1 cause GetUpperBound is 0-based
+      var rows = data.GetUpperBound(0) + 1; // +1 cause GetUpperBound is 0-based
+      var columnSeparator = '|';
+
+      // Calculate column widths:
+      // Rules:
+      // - For now just split the width equally amongst the columns.
+      var reservedForSeparator = columns + 1;
+      var columnWidth = (Console.WindowWidth - reservedForSeparator) / columns;
+      var remainder = (Console.WindowWidth - reservedForSeparator) % columns;
+
+      for (int i = 0; i < rows; i++)
+      {
+        
+        for (int j = 0; j < columns; j++)
+        {
+          var width = columnWidth;
+
+          // If it's the last column, extend it by the remainder:
+          if (j + 1== columns)
+          {
+            width += remainder;
+          }
+
+          Console.Write(columnSeparator);          
+          Console.Write(PadRightOrTruncate(data[i, j], width));
+          
+        }
+        Console.Write(columnSeparator);
+        Console.WriteLine();
+
+        // Separate header row from data rows so it is easier to read:
+        if (i == 0)
+        {
+          Console.WriteLine("".PadLeft(Console.WindowWidth, '-'));
+        }
+
+      }
+
+    }
+    private static string PadRightOrTruncate(string value, int length, int numberOfDots = 2)
+    {
+      if(value.Length == length)
+      {
+        return value;
+      }
+
+      if (value.Length < length)
+      {
+        return value.PadRight(length);
+      }
+
+      if (value.Length > length)
+      {
+        value = value.Substring(0, length - numberOfDots);
+        value = value.PadRight(length, '.');
+      }
+
+      return value;
     }
   }
 }
