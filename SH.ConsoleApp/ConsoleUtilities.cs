@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using SH.ConsoleApp.Extensions;
 
 namespace SH.ConsoleApp
 {
@@ -47,20 +48,19 @@ namespace SH.ConsoleApp
 
       for (int i = 0; i < rows; i++)
       {
-        
+
         for (int j = 0; j < columns; j++)
         {
           var width = columnWidth;
 
           // If it's the last column, extend it by the remainder:
-          if (j + 1== columns)
+          if (j + 1 == columns)
           {
             width += remainder;
           }
 
-          Console.Write(columnSeparator);          
-          Console.Write(PadRightOrTruncate(data[i, j], width));
-          
+          Console.Write(columnSeparator);
+          Console.Write(data[i, j].PadRightOrTruncate(width));
         }
         Console.Write(columnSeparator);
         Console.WriteLine();
@@ -70,29 +70,7 @@ namespace SH.ConsoleApp
         {
           Console.WriteLine("".PadLeft(Console.WindowWidth, '-'));
         }
-
       }
-
-    }
-    private static string PadRightOrTruncate(string value, int length, int numberOfDots = 2)
-    {
-      if(value.Length == length)
-      {
-        return value;
-      }
-
-      if (value.Length < length)
-      {
-        return value.PadRight(length);
-      }
-
-      if (value.Length > length)
-      {
-        value = value.Substring(0, length - numberOfDots);
-        value = value.PadRight(length, '.');
-      }
-
-      return value;
     }
   }
 }
