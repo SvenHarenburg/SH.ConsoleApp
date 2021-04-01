@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using SH.ConsoleApp.ConsoleUtilityModels;
 using SH.ConsoleApp.Extensions;
 
 namespace SH.ConsoleApp
@@ -71,6 +72,28 @@ namespace SH.ConsoleApp
           Console.WriteLine("".PadLeft(Console.WindowWidth, '-'));
         }
       }
+    }
+
+    /// <summary>
+    /// Writes a selection menu which allows the user to select an item by using the up- and down-arrow keys and to accept the selection by pressing Enter.
+    /// </summary>
+    /// <param name="menuItems">The items to be available for selection.</param>
+    /// <returns>Returns the index of the selected item.</returns>
+    /// <example>
+    /// Console.WriteLine($"How old are you?");
+    /// var items = new string[5] { "0-20", "21-40", "41-60", "61-80", "81+" };
+    /// var selectedIndex = ConsoleUtilities.WriteSelectionMenu(items);
+    /// Console.WriteLine($"You have selected: {items[selectedIndex]}".);
+    /// </example>
+    public static int WriteSelectionMenu(string[] menuItems)
+    {
+      if (menuItems == null) throw new ArgumentNullException(nameof(menuItems));
+      if (menuItems.Length == 0) throw new ArgumentException($"{nameof(menuItems)} cannot be empty");
+
+      var menu = new SelectionMenu(menuItems);
+      var selectedIndex = menu.AwaitSelection();
+
+      return selectedIndex;
     }
   }
 }
