@@ -1,7 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <RepositoryUrl>https://github.com/SvenHarenburg/SH.ConsoleApp</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/SvenHarenburg/SH.ConsoleApp</PackageProjectUrl>
+    <RepositoryType>git</RepositoryType>
+    <Authors>Sven Harenburg</Authors>
+    <Description>SH.ConsoleApp is a small framework aiming to help with creating .NET Console Applications by utilizing the power of reflection and the .NET Generic Host.</Description>
+    <Copyright>Sven Harenburg</Copyright>
   </PropertyGroup>
 
   <ItemGroup>
