@@ -6,6 +6,12 @@ using System.Threading.Tasks;
 
 namespace SH.ConsoleApp.Tests.TestCommands
 {
+  /* !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
+   * For simplicity the tests are designed in a way that expects the functions of Commands to have distinctive names.
+   * Do NOT use overload function.
+   * !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+   */
+
   /// <summary>
   /// CommandGroup for use in Unit-Tests.
   /// </summary>

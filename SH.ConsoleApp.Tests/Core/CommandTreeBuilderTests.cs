@@ -77,7 +77,7 @@ namespace SH.ConsoleApp.Tests.Core
 
       [Test]
       [TestCase(typeof(MathCommand))]
-      [TestCase(typeof(WeatherCommand))]      
+      [TestCase(typeof(WeatherCommand))]
       public void FindsCommandGroupInMultipleAssemblies(Type commandGroupType)
       {
         var builder = new CommandTreeBuilder(_multipleAssemblies);
@@ -127,6 +127,120 @@ namespace SH.ConsoleApp.Tests.Core
       }
 
 
+
+    }
+
+
+    [TestFixture]
+    public class FillOptionsAndArgumentsTests
+    {
+      private Dictionary<MethodInfo, ExpectedCommandParameter[]> _expectedOptionsPerCommand;
+      private Dictionary<MethodInfo, ExpectedCommandParameter[]> _expectedArgumentsPerCommand;
+
+      [SetUp]
+      public void Setup()
+      {
+        _expectedOptionsPerCommand = new Dictionary<MethodInfo, ExpectedCommandParameter[]>();
+        _expectedArgumentsPerCommand = new Dictionary<MethodInfo, ExpectedCommandParameter[]>();
+
+        var commandMethodInfos = new MethodInfo[]
+        {
+          typeof(MathCommand).GetMethod(nameof(MathCommand.Add)),
+          typeof(MathCommand).GetMethod(nameof(MathCommand.Subtract)),
+          typeof(WeatherCommand).GetMethod(nameof(WeatherCommand.Today)),
+          typeof(WeatherCommand).GetMethod(nameof(WeatherCommand.Tomorrow)),
+          typeof(WeatherCommand).GetMethod(nameof(WeatherCommand.Weekly))
+        };
+
+        foreach (var methodInfo in commandMethodInfos)
+        {
+          _expectedOptionsPerCommand.Add(methodInfo, GetExpectedCommandOptions(methodInfo));
+          _expectedArgumentsPerCommand.Add(methodInfo, GetExpectedCommandArguments(methodInfo));
+        }
+      }
+
+      private ExpectedCommandParameter[] GetExpectedCommandOptions(MethodInfo methodInfo)
+      {
+        return methodInfo.GetParameters()
+             .Where(q => q.GetCustomAttribute<CommandOptionAttribute>() != null)
+             .Select(q => new ExpectedCommandParameter()
+             {
+               Name = q.GetCustomAttribute<CommandOptionAttribute>().Name,
+               ParameterType = q.ParameterType
+             })
+             .ToArray();
+      }
+
+      private ExpectedCommandParameter[] GetExpectedCommandArguments(MethodInfo methodInfo)
+      {
+        return methodInfo.GetParameters()
+             .Where(q => q.GetCustomAttribute<CommandArgumentAttribute>() != null)
+             .Select(q => new ExpectedCommandParameter()
+             {
+               Name = q.GetCustomAttribute<CommandArgumentAttribute>().Name,
+               ParameterType = q.ParameterType
+             })
+             .ToArray();
+      }
+
+
+      [Test]
+      [TestCase(typeof(MathCommand), nameof(MathCommand.Add))]
+      [TestCase(typeof(MathCommand), nameof(MathCommand.Subtract))]
+      [TestCase(typeof(WeatherCommand), nameof(WeatherCommand.Today))]
+      [TestCase(typeof(WeatherCommand), nameof(WeatherCommand.Tomorrow))]
+      [TestCase(typeof(WeatherCommand), nameof(WeatherCommand.Weekly))]
+      public void FillsOptions(Type commandGroupType, string commandMethodName)
+      {
+        var methodInfo = commandGroupType.GetMethod(commandMethodName);
+        _expectedOptionsPerCommand.TryGetValue(methodInfo, out var expectedOptions);
+        Assert.NotNull(expectedOptions, $"Test setup not correct. Missing expectedOptions for command of method {commandGroupType.Name}.{commandMethodName}");
+
+        var command = new Command()
+        {
+          CommandMethodInfo = methodInfo
+        };
+        CommandTreeBuilder.FillOptionsAndArguments(command);
+
+        Assert.Multiple(() =>
+        {
+          foreach (var expected in expectedOptions)
+          {
+            var found = command.Options.Any(
+              q => q.CommandOptionAttribute.Name == expected.Name && q.ParameterInfo.ParameterType == expected.ParameterType);
+            Assert.True(found, $"Option {expected.Name} with parameter type {expected.ParameterType.Name} for command of method {commandGroupType.Name}.{commandMethodName} was not found.");
+          }
+        });
+      }
+
+      [Test]
+      [TestCase(typeof(MathCommand), nameof(MathCommand.Add))]
+      [TestCase(typeof(MathCommand), nameof(MathCommand.Subtract))]
+      [TestCase(typeof(WeatherCommand), nameof(WeatherCommand.Today))]
+      [TestCase(typeof(WeatherCommand), nameof(WeatherCommand.Tomorrow))]
+      [TestCase(typeof(WeatherCommand), nameof(WeatherCommand.Weekly))]
+      public void FillsArguments(Type commandGroupType, string commandMethodName)
+      {
+        var methodInfo = commandGroupType.GetMethod(commandMethodName);
+        _expectedArgumentsPerCommand.TryGetValue(methodInfo, out var expectedArguments);
+        Assert.NotNull(expectedArguments, $"Test setup not correct. Missing expectedArguments for command of method {commandGroupType.Name}.{commandMethodName}");
+
+        var command = new Command()
+        {
+          CommandMethodInfo = methodInfo
+        };
+        CommandTreeBuilder.FillOptionsAndArguments(command);
+
+        Assert.Multiple(() =>
+        {
+          foreach (var expected in expectedArguments)
+          {
+            var found = command.Arguments.Any(
+              q => q.CommandArgumentAttribute.Name == expected.Name && q.ParameterInfo.ParameterType == expected.ParameterType);
+            Assert.True(found, $"Argument {expected.Name} with parameter type {expected.ParameterType.Name} for command of method {commandGroupType.Name}.{commandMethodName} was not found.");
+          }
+        });
+      }
 
     }
   }

@@ -7,6 +7,12 @@ using SH.ConsoleApp;
 
 namespace SH.ConsoleApp.Tests.TestCommands
 {
+  /* !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
+   * For simplicity the tests are designed in a way that expects the functions of Commands to have distinctive names.
+   * Do NOT overload functions.
+   * !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+   */
+
   /// <summary>
   /// CommandGroup for use in Unit-Tests.
   /// </summary>
