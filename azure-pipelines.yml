@@ -13,13 +13,6 @@ variables:
   buildConfiguration: 'Release'
 
 steps:
-
-#restore might not be necessary since it's run implicitly on build
-#- task: DotNetCoreCLI@2
-#  inputs:
-#    command: 'restore'
-#    feedsToUse: 'select'
-
 - task: DotNetCoreCLI@2
   inputs:
     command: 'build'
