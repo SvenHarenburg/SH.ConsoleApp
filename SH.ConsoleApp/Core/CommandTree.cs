@@ -31,7 +31,6 @@ namespace SH.ConsoleApp.Core
               // Since the name fits, we now need to fill options and arguments to find potential matches:
               CommandTreeBuilder.FillOptionsAndArguments(command);
 
-
               // Find Command by options and arguments:
 
               /*
@@ -41,78 +40,65 @@ namespace SH.ConsoleApp.Core
                * - Command can have additional optional and arguments
                */
 
-              // -------------------------------
               // Options:
-              // -------------------------------
-              var optionDictionary = command.Options.ToDictionary(q => q.CommandOptionAttribute.Name, q => q, StringComparer.OrdinalIgnoreCase);
-              var optionFullJoin = options.FullJoin(command.Options.Select(q => q.CommandOptionAttribute.Name),
-                x => x.ToLower(),
-                y => y.ToLower(),
-                x => new { InputOption = x, CommandOption = "" },
-                y => new { InputOption = "", CommandOption = y },
-                (x, y) => new { InputOption = x, CommandOption = y }
-                );
+              var optionMatch = MatchParameters(
+                command.Options.Cast<CommandParameter>().ToList(),
+                options);
+              if (optionMatch.MissesRequiredParameters) continue;
+              if (optionMatch.MoreParametersThanAvailable) continue;
 
-              var missesRequiredOptions = optionFullJoin.Any(
-                q => string.IsNullOrWhiteSpace(q.InputOption)
-                && !string.IsNullOrWhiteSpace(q.CommandOption)
-                && !optionDictionary[q.CommandOption].ParameterInfo.IsOptional);
-              if (missesRequiredOptions) continue;
-
-              var moreOptionsThanAvailable = optionFullJoin.Any(
-                q => string.IsNullOrWhiteSpace(q.CommandOption));
-              if (moreOptionsThanAvailable) continue;
-
-              // Required to find the best matching command.
-              // If one has two missing optional options and another has only one missing, than the other matches better.
-              var numberOfMissingOptionalOptions = optionFullJoin.Count(
-                q => string.IsNullOrWhiteSpace(q.InputOption)
-                && !string.IsNullOrWhiteSpace(q.CommandOption)
-                && optionDictionary[q.CommandOption].ParameterInfo.IsOptional);
-
-              // -------------------------------
               // Arguments:
-              // -------------------------------
-              var argumentDictionary = command.Arguments.ToDictionary(q => q.CommandArgumentAttribute.Name, q => q, StringComparer.OrdinalIgnoreCase);
-              var argumentFullJoin = arguments.FullJoin(command.Arguments.Select(q => q.CommandArgumentAttribute.Name),
-                x => x.ToLower(),
-                y => y.ToLower(),
-                x => new { InputArgument = x, CommandArgument = "" },
-                y => new { InputArgument = "", CommandArgument = y },
-                (x, y) => new { InputArgument = x, CommandArgument = y }
-                );
+              var argumentMatch = MatchParameters(
+                command.Arguments.Cast<CommandParameter>().ToList(),
+                arguments);
+              if (argumentMatch.MissesRequiredParameters) continue;
+              if (argumentMatch.MoreParametersThanAvailable) continue;
 
-              var missesRequiredArguments = argumentFullJoin.Any(
-                q => string.IsNullOrWhiteSpace(q.InputArgument)
-                && !string.IsNullOrWhiteSpace(q.CommandArgument)
-                && !argumentDictionary[q.CommandArgument].ParameterInfo.IsOptional);
-              if (missesRequiredArguments) continue;
-
-              var moreArgumentsThanAvailable = argumentFullJoin.Any(
-                q => string.IsNullOrWhiteSpace(q.CommandArgument));
-              if (moreArgumentsThanAvailable) continue;
-
-              // Required to find the best matching command.
-              // If one has two missing Argumental Arguments and another has only one missing, than the other matches better.
-              var numberOfMissingOptionalArguments = argumentFullJoin.Count(
-                q => string.IsNullOrWhiteSpace(q.InputArgument)
-                && !string.IsNullOrWhiteSpace(q.CommandArgument)
-                && argumentDictionary[q.CommandArgument].ParameterInfo.IsOptional);
-              if (missesRequiredArguments) continue;
-
+              // Found a potential match, add it to the list:
               potentialMatches.Add(new CommandMatch()
               {
                 Command = command,
-                NumberOfMissingOptionalOptions = numberOfMissingOptionalOptions,
-                NumberOfMissingOptionalArguments = numberOfMissingOptionalArguments
+                NumberOfMissingOptionalOptions = optionMatch.NumberOfMissingOptionalParameters,
+                NumberOfMissingOptionalArguments = argumentMatch.NumberOfMissingOptionalParameters
               });
             }
           }
         }
       }
-
+            
       var bestMatchingCommand = potentialMatches.OrderByDescending(q => q.NumberOfMissingOptionalOptions + q.NumberOfMissingOptionalArguments).FirstOrDefault();
       return bestMatchingCommand;
+    }
+
+    private ParameterMatch MatchParameters(List<CommandParameter> commandParameters, List<string> inputParameters)
+    {
+      var result = new ParameterMatch();
+
+      var argumentDictionary = commandParameters.ToDictionary(q => q.Name, q => q, StringComparer.OrdinalIgnoreCase);
+      var fullJoin = inputParameters.FullJoin(commandParameters.Select(q => q.Name),
+        x => x.ToLower(),
+        y => y.ToLower(),
+        x => new { inputParameter = x, commandParameter = "" },
+        y => new { inputParameter = "", commandParameter = y },
+        (x, y) => new { inputParameter = x, commandParameter = y }
+        );
+
+      result.MissesRequiredParameters = fullJoin.Any(
+        q => string.IsNullOrWhiteSpace(q.inputParameter)
+        && !string.IsNullOrWhiteSpace(q.commandParameter)
+        && !argumentDictionary[q.commandParameter].ParameterInfo.IsOptional);
+
+      result.MoreParametersThanAvailable = fullJoin.Any(
+        q => string.IsNullOrWhiteSpace(q.commandParameter));
+
+      // Required to find the best matching command.
+      // If one has two missing optional parameters and another has only one missing, than the latter matches better.
+      result.NumberOfMissingOptionalParameters = fullJoin.Count(
+        q => string.IsNullOrWhiteSpace(q.inputParameter)
+        && !string.IsNullOrWhiteSpace(q.commandParameter)
+        && argumentDictionary[q.commandParameter].ParameterInfo.IsOptional);
+
+      return result;
     }
   }
 }

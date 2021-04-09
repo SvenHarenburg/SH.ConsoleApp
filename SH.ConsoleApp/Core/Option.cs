@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 
 namespace SH.ConsoleApp.Core
 {
-  internal class Option
+  internal class Option : CommandParameter
   {
-    public ParameterInfo ParameterInfo { get; set; }
+    public override string Name => CommandOptionAttribute?.Name;
     public CommandOptionAttribute CommandOptionAttribute { get; set; }
   }
 }

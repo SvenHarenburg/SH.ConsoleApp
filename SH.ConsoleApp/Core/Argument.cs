@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 
 namespace SH.ConsoleApp.Core
 {
-  internal class Argument
+  internal class Argument : CommandParameter
   {
-    public ParameterInfo ParameterInfo { get; set; }
+    public override string Name => CommandArgumentAttribute?.Name;
     public CommandArgumentAttribute CommandArgumentAttribute { get; set; }
   }
 }
