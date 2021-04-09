@@ -67,9 +67,16 @@ namespace SH.ConsoleApp
             // Match input to Command:
             var commandMatch = commandTree.FindCommand(parsedInput);
 
-            // Run command using CommandRunner:
-            var runner = ActivatorUtilities.CreateInstance<CommandRunner>(_serviceCollection.BuildServiceProvider());
-            runner.RunCommand(commandMatch.Command, parsedInput.Options, parsedInput.Arguments);
+            if (commandMatch != null)
+            {
+              // Run command using CommandRunner:
+              var runner = ActivatorUtilities.CreateInstance<CommandRunner>(_serviceCollection.BuildServiceProvider());
+              runner.RunCommand(commandMatch.Command, parsedInput.Options, parsedInput.Arguments);
+            }
+            else
+            {
+              WriteCommandNotFound();
+            }
 
             _exitCode = 0;
           }
@@ -95,6 +102,11 @@ namespace SH.ConsoleApp
       // Exitcode may be null if the user cancelled cia Ctrl+C/SIGTERM
       Environment.ExitCode = _exitCode.GetValueOrDefault(-1);
       return Task.CompletedTask;
+    }
+
+    private void WriteCommandNotFound()
+    {
+      Console.WriteLine($"No command could be found for provided arguments. Run \"help\" for a list of commands or \"{{command}} help\" for help with a specific command.");
     }
   }
 }
