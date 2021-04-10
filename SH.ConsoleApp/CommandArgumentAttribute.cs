@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 
 namespace SH.ConsoleApp
 {
+  /// <summary>
+  /// Declares a parameter to be an Argument passed to the Command.
+  /// </summary>
   [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false)]
   public class CommandArgumentAttribute : CommandAttributeBaseWithDescription
   {

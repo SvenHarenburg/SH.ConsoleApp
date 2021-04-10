@@ -8,6 +8,9 @@ using SH.ConsoleApp.Extensions;
 
 namespace SH.ConsoleApp
 {
+  /// <summary>
+  /// Provides a set of utility functions for the Console.
+  /// </summary>
   public static class ConsoleUtilities
   {
     /// <summary>
@@ -34,6 +37,10 @@ namespace SH.ConsoleApp
       }
     }
 
+    /// <summary>
+    /// Writes tabular data to the console by dividing the space available equally amongst the columns.
+    /// </summary>
+    /// <param name="data">The data to be written to the console. The first row is expected to be the header row.</param>
     public static void WriteTable(string[,] data)
     {
       var columns = data.GetUpperBound(1) + 1; // +1 cause GetUpperBound is 0-based

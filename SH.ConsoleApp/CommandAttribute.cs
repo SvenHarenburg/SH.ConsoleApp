@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 
 namespace SH.ConsoleApp
 {
+  /// <summary>
+  /// Declares a function to be a Command.
+  /// </summary>
   [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
   public class CommandAttribute : CommandAttributeBaseWithDescription
   {
