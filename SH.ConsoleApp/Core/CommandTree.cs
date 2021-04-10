@@ -61,7 +61,8 @@ namespace SH.ConsoleApp.Core
         }
       }
 
-      var bestMatchingCommand = potentialMatches.OrderByDescending(q => q.NumberOfMissingOptionalOptions + q.NumberOfMissingOptionalArguments).FirstOrDefault();
+      // Take the one with the least amount of missing optional parameters.
+      var bestMatchingCommand = potentialMatches.OrderBy(q => q.NumberOfMissingOptionalOptions + q.NumberOfMissingOptionalArguments).FirstOrDefault();
       return bestMatchingCommand;
     }
 
