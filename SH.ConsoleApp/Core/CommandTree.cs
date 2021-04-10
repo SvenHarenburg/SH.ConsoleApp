@@ -14,58 +14,53 @@ namespace SH.ConsoleApp.Core
     public CommandMatch FindCommand(string commandName, List<string> options, List<string> arguments)
     {
       var potentialMatches = new List<CommandMatch>();
+      var groupsWithMatchingName = CommandGroups.Where(q => commandName.StartsWith(q.Name, StringComparison.OrdinalIgnoreCase));
 
-      foreach (var group in CommandGroups)
+      foreach (var group in groupsWithMatchingName)
       {
-        // Find CommandGroup by name:
-        var groupName = group.CommandGroupAttribute.Name;
-        if (commandName.StartsWith(groupName, StringComparison.OrdinalIgnoreCase))
+        // Find Command by name:
+        foreach (var command in group.Commands)
         {
-
-          // Find Command by name:
-          foreach (var command in group.Commands)
+          var combinedCommandName = $"{group.Name} {command.CommandAttribute.Name}".Trim();
+          if (string.Equals(combinedCommandName, commandName, StringComparison.OrdinalIgnoreCase))
           {
-            var combinedCommandName = $"{groupName} {command.CommandAttribute.Name}".Trim();
-            if (string.Equals(combinedCommandName, commandName, StringComparison.OrdinalIgnoreCase))
+            // Since the name fits, we now need to fill options and arguments to find potential matches:
+            CommandTreeBuilder.FillOptionsAndArguments(command);
+
+            // Find Command by options and arguments:
+
+            /*
+             * Rules:
+             * - Command must match all options
+             * - Command must match all arguments
+             * - Command can have additional optional and arguments
+             */
+
+            // Options:
+            var optionMatch = MatchParameters(
+              command.Options.Cast<CommandParameter>().ToList(),
+              options);
+            if (optionMatch.MissesRequiredParameters) continue;
+            if (optionMatch.MoreParametersThanAvailable) continue;
+
+            // Arguments:
+            var argumentMatch = MatchParameters(
+              command.Arguments.Cast<CommandParameter>().ToList(),
+              arguments);
+            if (argumentMatch.MissesRequiredParameters) continue;
+            if (argumentMatch.MoreParametersThanAvailable) continue;
+
+            // Found a potential match, add it to the list:
+            potentialMatches.Add(new CommandMatch()
             {
-              // Since the name fits, we now need to fill options and arguments to find potential matches:
-              CommandTreeBuilder.FillOptionsAndArguments(command);
-
-              // Find Command by options and arguments:
-
-              /*
-               * Rules:
-               * - Command must match all options
-               * - Command must match all arguments
-               * - Command can have additional optional and arguments
-               */
-
-              // Options:
-              var optionMatch = MatchParameters(
-                command.Options.Cast<CommandParameter>().ToList(),
-                options);
-              if (optionMatch.MissesRequiredParameters) continue;
-              if (optionMatch.MoreParametersThanAvailable) continue;
-
-              // Arguments:
-              var argumentMatch = MatchParameters(
-                command.Arguments.Cast<CommandParameter>().ToList(),
-                arguments);
-              if (argumentMatch.MissesRequiredParameters) continue;
-              if (argumentMatch.MoreParametersThanAvailable) continue;
-
-              // Found a potential match, add it to the list:
-              potentialMatches.Add(new CommandMatch()
-              {
-                Command = command,
-                NumberOfMissingOptionalOptions = optionMatch.NumberOfMissingOptionalParameters,
-                NumberOfMissingOptionalArguments = argumentMatch.NumberOfMissingOptionalParameters
-              });
-            }
+              Command = command,
+              NumberOfMissingOptionalOptions = optionMatch.NumberOfMissingOptionalParameters,
+              NumberOfMissingOptionalArguments = argumentMatch.NumberOfMissingOptionalParameters
+            });
           }
         }
       }
-            
+
       var bestMatchingCommand = potentialMatches.OrderByDescending(q => q.NumberOfMissingOptionalOptions + q.NumberOfMissingOptionalArguments).FirstOrDefault();
       return bestMatchingCommand;
     }
