@@ -79,18 +79,5 @@ namespace SH.ConsoleApp.Commands
 
       Console.WriteLine();      
     }
-
-    [Command("test1", "description")]
-    public void Execute1() { }
-
-
-    [Command("test2", "description")]
-    public void Execute2() { }
-
-
-    [Command("test3", "description")]
-    public void Execute3() { }
   }
-
-
 }
