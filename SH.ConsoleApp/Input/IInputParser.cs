@@ -2,7 +2,7 @@
 
 namespace SH.ConsoleApp.Input
 {
-  internal interface IInputParser
+  public interface IInputParser
   {
     ParsedInput ParseInput(string[] args, List<string> availableCommands);
   }

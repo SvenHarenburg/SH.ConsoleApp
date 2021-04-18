@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace SH.ConsoleApp.Input
 {
-  internal class ParsedInput
+  public class ParsedInput
   {
     public string Command { get; set; }
     public Dictionary<string, string> Arguments { get; set; } = new Dictionary<string, string>();
