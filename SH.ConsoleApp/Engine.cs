@@ -56,6 +56,7 @@ namespace SH.ConsoleApp
             var assemblies = _assemblyProvider.GetAssemblies();
 
             // Build command tree:
+            // TODO: Modify CommandTreeBuilder to expect ICommandGroupAssemblyProvider through DI so it can be expected through DI by the Engine to reduce the responsibilities of the Engine itself.
             var builder = new CommandTreeBuilder(assemblies);
             var commandTree = builder.BuildBaseTree();
             var availableCommands = commandTree.CommandGroups.SelectMany(q => q.AvailableCommands).ToList();
