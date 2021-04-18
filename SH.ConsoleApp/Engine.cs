@@ -20,6 +20,7 @@ namespace SH.ConsoleApp
     private readonly CommandLineArgs _args;
     private readonly IServiceCollection _serviceCollection;
     private readonly IInputParser _inputParser;
+    private readonly ICommandGroupAssemblyProvider _assemblyProvider;
 
     // Constructor has to be public for Dependency Injection to work.
     // The ServiceProvider cannot access internal constructors.
@@ -28,13 +29,15 @@ namespace SH.ConsoleApp
       IHostApplicationLifetime appLifetime,
       CommandLineArgs args,
       IServiceCollection serviceCollection,
-      IInputParser inputParser)
+      IInputParser inputParser,
+      ICommandGroupAssemblyProvider assemblyProvider)
     {
       _logger = logger ?? throw new ArgumentNullException(nameof(logger));
       _appLifetime = appLifetime ?? throw new ArgumentNullException(nameof(appLifetime));
       _args = args ?? throw new ArgumentNullException(nameof(args));
       _serviceCollection = serviceCollection ?? throw new ArgumentNullException(nameof(serviceCollection));
-      _inputParser = inputParser;
+      _inputParser = inputParser ?? throw new ArgumentNullException(nameof(inputParser));
+      _assemblyProvider = assemblyProvider ?? throw new ArgumentNullException(nameof(assemblyProvider));
     }
 
     public Task StartAsync(CancellationToken cancellationToken)
@@ -49,10 +52,10 @@ namespace SH.ConsoleApp
           {
             _logger.LogInformation("EngineService => Register");
 
+            // Get assemblies which should be searched for CommandGroups:
+            var assemblies = _assemblyProvider.GetAssemblies();
+
             // Build command tree:
-            // ExecutingAssembly: SH.ConsoleApp to include Commands provided by this library.
-            // EntryAssembly: The Assembly referencing SH.ConsoleApp.
-            var assemblies = new Assembly[2] { Assembly.GetExecutingAssembly(), Assembly.GetEntryAssembly() };
             var builder = new CommandTreeBuilder(assemblies);
             var commandTree = builder.BuildBaseTree();
             var availableCommands = commandTree.CommandGroups.SelectMany(q => q.AvailableCommands).ToList();

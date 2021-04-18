@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
+using SH.ConsoleApp.Core;
 using SH.ConsoleApp.Input;
 using System.Threading.Tasks;
 
@@ -20,6 +21,7 @@ namespace SH.ConsoleApp
       {
         services.AddSingleton(services);
         services.AddSingleton(new CommandLineArgs(args));
+        services.TryAddTransient<ICommandGroupAssemblyProvider, CommandGroupAssemblyProvider>();
         services.TryAddTransient<IInputParser, InputParser>();
         services.AddHostedService<Engine>();
       });
