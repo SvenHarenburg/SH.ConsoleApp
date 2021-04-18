@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SH.ConsoleApp.Input
 {
@@ -15,17 +12,11 @@ namespace SH.ConsoleApp.Input
   ///                Problem is, that an input can start with multiple single words where those words can be either a command or an option.
   ///                To decide wether a word is part of the command or is an option, the parser needs to know which commands are available.
   /// </remarks>
-  internal class InputParser
+  internal class InputParser : IInputParser
   {
     private const string _argumentKeyPrefix = "--";
-    private List<string> _availableCommands;
 
-    public InputParser(List<string> availableCommands)
-    {
-      _availableCommands = availableCommands;
-    }
-
-    public ParsedInput ParseInput(string[] args)
+    public ParsedInput ParseInput(string[] args, List<string> availableCommands)
     {
       // Sample Input:
       // "{Command} {Option1} {Option2:}:{Option2Value} {--Argument1}:{Value1} {--Argument2}:{Value2}"
@@ -54,7 +45,7 @@ namespace SH.ConsoleApp.Input
           }
           currentCommandValue += reader.Item;
 
-          if (_availableCommands.Contains(currentCommandValue))
+          if (availableCommands.Contains(currentCommandValue))
           {
             result.Command = currentCommandValue;
             commandFound = true;

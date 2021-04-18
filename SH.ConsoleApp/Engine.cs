@@ -4,10 +4,8 @@ using Microsoft.Extensions.Logging;
 using SH.ConsoleApp.Core;
 using SH.ConsoleApp.Input;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -21,6 +19,7 @@ namespace SH.ConsoleApp
     private readonly IHostApplicationLifetime _appLifetime;
     private readonly CommandLineArgs _args;
     private readonly IServiceCollection _serviceCollection;
+    private readonly IInputParser _inputParser;
 
     // Constructor has to be public for Dependency Injection to work.
     // The ServiceProvider cannot access internal constructors.
@@ -28,12 +27,14 @@ namespace SH.ConsoleApp
       ILogger<Engine> logger,
       IHostApplicationLifetime appLifetime,
       CommandLineArgs args,
-      IServiceCollection serviceCollection)
+      IServiceCollection serviceCollection,
+      IInputParser inputParser)
     {
       _logger = logger ?? throw new ArgumentNullException(nameof(logger));
       _appLifetime = appLifetime ?? throw new ArgumentNullException(nameof(appLifetime));
       _args = args ?? throw new ArgumentNullException(nameof(args));
       _serviceCollection = serviceCollection ?? throw new ArgumentNullException(nameof(serviceCollection));
+      _inputParser = inputParser;
     }
 
     public Task StartAsync(CancellationToken cancellationToken)
@@ -60,9 +61,7 @@ namespace SH.ConsoleApp
             _serviceCollection.AddSingleton(commandTree);
 
             // Parse input
-            ParsedInput parsedInput = null;
-            var parser = new InputParser(availableCommands);
-            parsedInput = parser.ParseInput(_args.Args);
+            var parsedInput = _inputParser.ParseInput(_args.Args, availableCommands);
 
             // Match input to Command:
             var commandMatch = commandTree.FindCommand(parsedInput);

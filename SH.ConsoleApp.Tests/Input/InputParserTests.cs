@@ -36,8 +36,8 @@ namespace SH.ConsoleApp.Tests.Input
       [TestCase("list packages", new string[] { "list packages", "--filter:timer" })]
       public void IdentifiesCommand(string desiredCommand, params string[] args)
       {
-        var parser = new InputParser(_availableCommands);
-        var result = parser.ParseInput(args);
+        var parser = new InputParser();
+        var result = parser.ParseInput(args, _availableCommands);
         Assert.AreEqual(desiredCommand, result.Command);
       }
 
@@ -45,8 +45,8 @@ namespace SH.ConsoleApp.Tests.Input
       [TestCase(new object[] { "typocommand", "name:timer", "--version:1.0.0" })]
       public void ThrowsCommandNotFoundException(params string[] args)
       {
-        var parser = new InputParser(_availableCommands);
-        Assert.Throws<CommandNotFoundException>(() => parser.ParseInput(args));
+        var parser = new InputParser();
+        Assert.Throws<CommandNotFoundException>(() => parser.ParseInput(args, _availableCommands));
       }
 
 
@@ -55,8 +55,8 @@ namespace SH.ConsoleApp.Tests.Input
       [TestCase("name", "timer", new string[] { "install", "name:timer", "--version:1.0.0" })]
       public void IdentifiesSingleOptionWithOrWithoutValue(string desiredOptionKey, string desiredOptionValue, params string[] args)
       {
-        var parser = new InputParser(_availableCommands);
-        var result = parser.ParseInput(args);
+        var parser = new InputParser();
+        var result = parser.ParseInput(args, _availableCommands);
         Assert.IsNotEmpty(result.Options, "Parser has not found any Options");
         Assert.AreEqual(desiredOptionKey, result.Options.ElementAt(0).Key);
         Assert.AreEqual(desiredOptionValue, result.Options.ElementAt(0).Value);
@@ -68,8 +68,8 @@ namespace SH.ConsoleApp.Tests.Input
       [TestCase(new string[] { "option1", "option2" }, new string[] { "list packages", "option1", "option2" })]
       public void IdentifiesMultipleOptionsInCorrectOrder(string[] desiredOptions, params string[] args)
       {
-        var parser = new InputParser(_availableCommands);
-        var result = parser.ParseInput(args);
+        var parser = new InputParser();
+        var result = parser.ParseInput(args, _availableCommands);
         Assert.AreEqual(desiredOptions.Length, result.Options.Count, "Did not identify the correct number of Options.");
 
         for (int i = 0; i < desiredOptions.Length; i++)
@@ -83,8 +83,8 @@ namespace SH.ConsoleApp.Tests.Input
       [TestCase("filter", "time", new string[] { "list packages", "--filter:time" })]
       public void IdentifiesSingleArgumentWithValue(string desiredArgumentKey, string desiredArgumentValue, params string[] args)
       {
-        var parser = new InputParser(_availableCommands);
-        var result = parser.ParseInput(args);
+        var parser = new InputParser();
+        var result = parser.ParseInput(args, _availableCommands);
         Assert.IsNotEmpty(result.Arguments, "Did not identify an Argument");
         Assert.AreEqual(result.Arguments.Count, 1, "Identified more than one Argument");
 
@@ -98,8 +98,8 @@ namespace SH.ConsoleApp.Tests.Input
       [TestCase("pretty", new string[] { "list packages", "--pretty" })]
       public void IdentifiesSingleArgumentWithoutValue(string desiredArgumentKey, params string[] args)
       {
-        var parser = new InputParser(_availableCommands);
-        var result = parser.ParseInput(args);
+        var parser = new InputParser();
+        var result = parser.ParseInput(args, _availableCommands);
         Assert.IsNotEmpty(result.Arguments, "Did not identify an Argument");
         Assert.AreEqual(result.Arguments.Count, 1, "Identified more than one Argument");
 
@@ -123,8 +123,8 @@ namespace SH.ConsoleApp.Tests.Input
           throw new Exception($"Wrong testcases! desiredArgumentKeys.Length needs to be equal to desiredArgumentValues.");
         }
 
-        var parser = new InputParser(_availableCommands);
-        var result = parser.ParseInput(args);
+        var parser = new InputParser();
+        var result = parser.ParseInput(args, _availableCommands);
 
         Assert.AreEqual(desiredArgumentKeys.Length, result.Arguments.Count, "Did not identify the correct number of Arguments.");
 
@@ -142,8 +142,8 @@ namespace SH.ConsoleApp.Tests.Input
       public void ThrowsFormatExceptionWhenUsingColon(params string[] args)
       {
 
-        var parser = new InputParser(_availableCommands);
-        Assert.Throws<FormatException>(() => parser.ParseInput(args));
+        var parser = new InputParser();
+        Assert.Throws<FormatException>(() => parser.ParseInput(args, _availableCommands));
       }
     }
   }

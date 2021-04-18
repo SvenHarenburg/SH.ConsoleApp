@@ -1,9 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using SH.ConsoleApp.Input;
 using System.Threading.Tasks;
 
 namespace SH.ConsoleApp
@@ -22,6 +19,7 @@ namespace SH.ConsoleApp
       {
         services.AddSingleton(services);
         services.AddSingleton(new CommandLineArgs(args));
+        services.AddTransient<IInputParser, InputParser>();
         services.AddHostedService<Engine>();
       });
 
