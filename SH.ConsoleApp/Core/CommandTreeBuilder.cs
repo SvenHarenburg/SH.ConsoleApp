@@ -10,7 +10,7 @@ namespace SH.ConsoleApp.Core
   /// <summary>
   /// Provides functionality for building a <see cref="CommandTree"/> by searching an <see cref="Assembly"/>.
   /// </summary>
-  internal class CommandTreeBuilder
+  internal class CommandTreeBuilder : ICommandTreeBuilder
   {
     private readonly Assembly[] _assemblies;
     private CommandTree _commandTree;
@@ -18,20 +18,13 @@ namespace SH.ConsoleApp.Core
     /// <summary>
     /// Initializes a new instance of <see cref="CommandTreeBuilder"/>.
     /// </summary>
-    /// <param name="assembly">The <see cref="Assembly"/> which should be searched for <see cref="CommandGroup"/>s and <see cref="Command"/>s.</param>
-    public CommandTreeBuilder(Assembly assembly)
+    /// <param name="commandGroupAssemblyProvider">An instance of <see cref="ICommandGroupAssemblyProvider"/> 
+    /// which will be used to get the Assemblies to be search for <see cref="CommandGroup"/>s and <see cref="Command"/>s.</param>
+    public CommandTreeBuilder(ICommandGroupAssemblyProvider commandGroupAssemblyProvider)
     {
-      if (assembly == null) throw new ArgumentNullException(nameof(assembly));
-      _assemblies = new Assembly[1] { assembly };
-    }
+      if (commandGroupAssemblyProvider == null) throw new ArgumentNullException(nameof(commandGroupAssemblyProvider));
 
-    /// <summary>
-    /// Initializes a new instance of <see cref="CommandTreeBuilder"/>.
-    /// </summary>
-    /// <param name="assemblies">An array of <see cref="Assembly"/>-objects which should be searched for <see cref="CommandGroup"/>s and <see cref="Command"/>s.</param>
-    public CommandTreeBuilder(Assembly[] assemblies)
-    {
-      _assemblies = assemblies ?? throw new ArgumentNullException(nameof(assemblies));
+      _assemblies = commandGroupAssemblyProvider.GetAssemblies();
     }
 
     /// <summary>

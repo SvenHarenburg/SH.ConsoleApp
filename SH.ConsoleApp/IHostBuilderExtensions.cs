@@ -23,6 +23,7 @@ namespace SH.ConsoleApp
         services.AddSingleton(new CommandLineArgs(args));
         services.TryAddTransient<ICommandGroupAssemblyProvider, CommandGroupAssemblyProvider>();
         services.TryAddTransient<IInputParser, InputParser>();
+        services.TryAddTransient<ICommandTreeBuilder, CommandTreeBuilder>();
         services.AddHostedService<Engine>();
       });
 

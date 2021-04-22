@@ -23,6 +23,8 @@ namespace SH.ConsoleApp.Tests.Core
       // _multipleAssemblies which contains multiple that contain different Commands.
       private Assembly _singleAssembly;
       private Assembly[] _multipleAssemblies;
+      private ICommandGroupAssemblyProvider _singleAssemblyProvider;
+      private ICommandGroupAssemblyProvider _multipleAssembliesProvider;
 
       [SetUp]
       public void Setup()
@@ -61,6 +63,26 @@ namespace SH.ConsoleApp.Tests.Core
             });
           _multipleAssemblies[1] = mock.Object;
         }
+
+        // Create mock for _singleAssemblyProvider
+        {
+          var mock = new Mock<ICommandGroupAssemblyProvider>();
+          mock.Setup(q => q.GetAssemblies())
+            .Returns(new Assembly[]
+            {
+              _singleAssembly
+            });
+          _singleAssemblyProvider = mock.Object;
+        }
+
+        // Create mock for _multipleAssembliesProvider
+        {
+          var mock = new Mock<ICommandGroupAssemblyProvider>();
+          mock.Setup(q => q.GetAssemblies())
+            .Returns(_multipleAssemblies);
+          _multipleAssembliesProvider = mock.Object;
+        }
+
       }
 
       [Test]
@@ -68,7 +90,7 @@ namespace SH.ConsoleApp.Tests.Core
       [TestCase(typeof(WeatherCommand))]
       public void FindsCommandGroupInSingleAssembly(Type commandGroupType)
       {
-        var builder = new CommandTreeBuilder(_singleAssembly);
+        var builder = new CommandTreeBuilder(_singleAssemblyProvider);
         var tree = builder.BuildBaseTree();
 
         var found = tree.CommandGroups.Any(q => q.CommandGroupType == commandGroupType);
@@ -80,7 +102,7 @@ namespace SH.ConsoleApp.Tests.Core
       [TestCase(typeof(WeatherCommand))]
       public void FindsCommandGroupInMultipleAssemblies(Type commandGroupType)
       {
-        var builder = new CommandTreeBuilder(_multipleAssemblies);
+        var builder = new CommandTreeBuilder(_multipleAssembliesProvider);
         var tree = builder.BuildBaseTree();
 
         var found = tree.CommandGroups.Any(q => q.CommandGroupType == commandGroupType);
@@ -92,7 +114,7 @@ namespace SH.ConsoleApp.Tests.Core
       [TestCase(typeof(WeatherCommand), new string[] { nameof(WeatherCommand.Today), nameof(WeatherCommand.Tomorrow), nameof(WeatherCommand.Weekly) })]
       public void FindsCommandsInCommandGroups(Type commandGroupType, string[] commandMethodNames)
       {
-        var builder = new CommandTreeBuilder(_singleAssembly);
+        var builder = new CommandTreeBuilder(_singleAssemblyProvider);
         var tree = builder.BuildBaseTree();
 
         var commandGroup = tree.CommandGroups.First(q => q.CommandGroupType == commandGroupType);
@@ -115,7 +137,7 @@ namespace SH.ConsoleApp.Tests.Core
       [Test]
       public void DoesNotFillOptionsAndArguments()
       {
-        var builder = new CommandTreeBuilder(_singleAssembly);
+        var builder = new CommandTreeBuilder(_singleAssemblyProvider);
         var tree = builder.BuildBaseTree();
         var commands = from commandGroup in tree.CommandGroups
                        from command in commandGroup.Commands
@@ -125,11 +147,7 @@ namespace SH.ConsoleApp.Tests.Core
         Assert.IsEmpty(commands,
           $"Found {commands.Count()} Commands with filled Options and/or Arguments. These should not be filled when building the base tree.");
       }
-
-
-
     }
-
 
     [TestFixture]
     public class FillOptionsAndArgumentsTests

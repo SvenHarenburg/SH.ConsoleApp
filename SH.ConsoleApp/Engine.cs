@@ -20,7 +20,7 @@ namespace SH.ConsoleApp
     private readonly CommandLineArgs _args;
     private readonly IServiceCollection _serviceCollection;
     private readonly IInputParser _inputParser;
-    private readonly ICommandGroupAssemblyProvider _assemblyProvider;
+    private readonly ICommandTreeBuilder _commandTreeBuilder;
 
     // Constructor has to be public for Dependency Injection to work.
     // The ServiceProvider cannot access internal constructors.
@@ -30,14 +30,14 @@ namespace SH.ConsoleApp
       CommandLineArgs args,
       IServiceCollection serviceCollection,
       IInputParser inputParser,
-      ICommandGroupAssemblyProvider assemblyProvider)
+      ICommandTreeBuilder commandTreeBuilder)
     {
       _logger = logger ?? throw new ArgumentNullException(nameof(logger));
       _appLifetime = appLifetime ?? throw new ArgumentNullException(nameof(appLifetime));
       _args = args ?? throw new ArgumentNullException(nameof(args));
       _serviceCollection = serviceCollection ?? throw new ArgumentNullException(nameof(serviceCollection));
       _inputParser = inputParser ?? throw new ArgumentNullException(nameof(inputParser));
-      _assemblyProvider = assemblyProvider ?? throw new ArgumentNullException(nameof(assemblyProvider));
+      _commandTreeBuilder = commandTreeBuilder ?? throw new ArgumentNullException(nameof(commandTreeBuilder));
     }
 
     public Task StartAsync(CancellationToken cancellationToken)
@@ -52,13 +52,8 @@ namespace SH.ConsoleApp
           {
             _logger.LogInformation("EngineService => Register");
 
-            // Get assemblies which should be searched for CommandGroups:
-            var assemblies = _assemblyProvider.GetAssemblies();
-
             // Build command tree:
-            // TODO: Modify CommandTreeBuilder to expect ICommandGroupAssemblyProvider through DI so it can be expected through DI by the Engine to reduce the responsibilities of the Engine itself.
-            var builder = new CommandTreeBuilder(assemblies);
-            var commandTree = builder.BuildBaseTree();
+            var commandTree = _commandTreeBuilder.BuildBaseTree();
             var availableCommands = commandTree.CommandGroups.SelectMany(q => q.AvailableCommands).ToList();
 
             // Add the commandTree to the servicecollection so the help-command can access and use it.

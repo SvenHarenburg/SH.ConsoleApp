@@ -7,13 +7,13 @@ using System.Threading.Tasks;
 using SH.ConsoleApp.Core;
 using System.Reflection;
 using SH.ConsoleApp.Tests.TestCommands;
+using Moq;
 
 namespace SH.ConsoleApp.Tests.Core
 {
   [TestFixture]
   public class CommandTreeTests
   {
-
     [TestFixture]
     public class FindCommandTests
     {
@@ -25,7 +25,15 @@ namespace SH.ConsoleApp.Tests.Core
         // The creation of a CommandTree is complicated. To keep the test simple, the CommandTreeBuilder is used.        
         // The tradeoff is that if the CommandTreeBuilder does not work correctly, this test might fail even though
         // the CommandTree itself works correctly. Since the Builder itself is tested, I find this acceptable.
-        _tree = new CommandTreeBuilder(Assembly.GetExecutingAssembly()).BuildBaseTree();
+
+        var mock = new Mock<ICommandGroupAssemblyProvider>();
+        mock.Setup(q => q.GetAssemblies())
+          .Returns(new Assembly[]
+          {
+              Assembly.GetExecutingAssembly()
+          });
+
+        _tree = new CommandTreeBuilder(mock.Object).BuildBaseTree();
       }
 
       [Test]

@@ -8,9 +8,10 @@ using System.Threading.Tasks;
 
 namespace SH.ConsoleApp.Core
 {
-  internal class CommandRunner
+  internal class CommandRunner : ICommandRunner
   {
     private IServiceProvider _serviceProvider;
+
     public CommandRunner(IServiceProvider serviceProvider)
     {
       _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
