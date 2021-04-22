@@ -24,6 +24,7 @@ namespace SH.ConsoleApp
         services.TryAddTransient<ICommandGroupAssemblyProvider, CommandGroupAssemblyProvider>();
         services.TryAddTransient<IInputParser, InputParser>();
         services.TryAddTransient<ICommandTreeBuilder, CommandTreeBuilder>();
+        services.TryAddTransient<ICommandRunner, CommandRunner>();
         services.AddHostedService<Engine>();
       });
 

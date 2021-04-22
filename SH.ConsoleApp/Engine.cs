@@ -21,6 +21,7 @@ namespace SH.ConsoleApp
     private readonly IServiceCollection _serviceCollection;
     private readonly IInputParser _inputParser;
     private readonly ICommandTreeBuilder _commandTreeBuilder;
+    private readonly ICommandRunner _commandRunner;
 
     // Constructor has to be public for Dependency Injection to work.
     // The ServiceProvider cannot access internal constructors.
@@ -30,7 +31,8 @@ namespace SH.ConsoleApp
       CommandLineArgs args,
       IServiceCollection serviceCollection,
       IInputParser inputParser,
-      ICommandTreeBuilder commandTreeBuilder)
+      ICommandTreeBuilder commandTreeBuilder,
+      ICommandRunner commandRunner)
     {
       _logger = logger ?? throw new ArgumentNullException(nameof(logger));
       _appLifetime = appLifetime ?? throw new ArgumentNullException(nameof(appLifetime));
@@ -38,6 +40,7 @@ namespace SH.ConsoleApp
       _serviceCollection = serviceCollection ?? throw new ArgumentNullException(nameof(serviceCollection));
       _inputParser = inputParser ?? throw new ArgumentNullException(nameof(inputParser));
       _commandTreeBuilder = commandTreeBuilder ?? throw new ArgumentNullException(nameof(commandTreeBuilder));
+      _commandRunner = commandRunner ?? throw new ArgumentNullException(nameof(commandRunner));
     }
 
     public Task StartAsync(CancellationToken cancellationToken)
@@ -68,8 +71,7 @@ namespace SH.ConsoleApp
             if (commandMatch != null)
             {
               // Run command using CommandRunner:
-              var runner = ActivatorUtilities.CreateInstance<CommandRunner>(_serviceCollection.BuildServiceProvider());
-              runner.RunCommand(commandMatch.Command, parsedInput.Options, parsedInput.Arguments);
+              _commandRunner.RunCommand(commandMatch.Command, parsedInput.Options, parsedInput.Arguments);
             }
             else
             {
