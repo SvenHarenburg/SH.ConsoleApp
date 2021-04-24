@@ -43,8 +43,6 @@ namespace SH.ConsoleApp.Core
       _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
     }
 
-    // TODO: Throw (custom) Exception if one or more parameter values cannot be converted to Type of parameter.
-
     public RunCommandResult RunCommand(Command command, Dictionary<string, string> options, Dictionary<string, string> arguments)
     {
       var result = new RunCommandResult();
@@ -112,15 +110,16 @@ namespace SH.ConsoleApp.Core
         }
       }
 
-      try
-      {        
-
-        RunCommand();
-      }
-      catch (Exception ex)
+      if (CanRunCommand(result))
       {
-        Console.WriteLine(ex);
+        RunCommand();
+        result.Success = true;
       }
+      else
+      {
+        result.Success = false;
+      }
+
       return result;
     }
 
@@ -128,7 +127,16 @@ namespace SH.ConsoleApp.Core
     {
       // Instantiate instance of CommandGroup Type:
       var instance = ActivatorUtilities.CreateInstance(_serviceProvider, _currentCommand.CommandMethodInfo.DeclaringType);
+
+      // Invoke the Command:
       _currentCommand.CommandMethodInfo.Invoke(instance, _currentParameterValues.ToArray());
+    }
+
+    public bool CanRunCommand(RunCommandResult result)
+    {
+      return !result.InvalidOptions.Any()
+        || !result.InvalidArguments.Any()
+        || !result.NonOptionalUnknownParameters.Any();
     }
 
     /// <summary>

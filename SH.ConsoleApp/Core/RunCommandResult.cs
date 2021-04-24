@@ -17,5 +17,7 @@ namespace SH.ConsoleApp.Core
     /// Unmarked parameters have to be optional. Otherwise this case is not allowed.
     /// </summary>
     public List<ParameterInfo> NonOptionalUnknownParameters { get; set; } = new List<ParameterInfo>();
+
+    public bool Success { get; set; }
   }
 }
