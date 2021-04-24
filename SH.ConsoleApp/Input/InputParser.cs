@@ -14,7 +14,13 @@ namespace SH.ConsoleApp.Input
   /// </remarks>
   internal class InputParser : IInputParser
   {
-    private const string _argumentKeyPrefix = "--";
+    private const string ArgumentKeyPrefix = "--";
+    private const char KeyValueDelimiter = ':';
+
+    private Dictionary<char, string> _escapeCharacters = new Dictionary<char, string>()
+    {
+      {':',"[--colon--]" }
+    };
 
     public ParsedInput ParseInput(string[] args, List<string> availableCommands)
     {
@@ -55,17 +61,27 @@ namespace SH.ConsoleApp.Input
         }
 
         // Option or Argument:
-        var split = reader.Item.Split(':');
+
+        // To support colons and other special characters being part of the value of an option or argument, they can be put into quotes.
+        // Example: duration:"01:02:03" 
+        // Note: The colon is a special character that divides the key and value of an option or argument.
+        // 
+        // This should result in an option with key duration and a value of 01:02:03.
+        // For this to work the Parser will replace colons inside of quotes with a special character sequence
+        // and reverse that process when putting the value into the ParsedInput-result.
+
+        var escapedItem = EscapeInputValue(reader.Item);
+        var split = escapedItem.Split(KeyValueDelimiter);
         if (split.Length > 2)
         {
           throw new FormatException($"Invalid format. The key or value of the following option or argument contains a colon(:) - '{reader.Item}'. This is not currently supported.");
         }
 
         // Argument:
-        if (StringIsArgumentKey(reader.Item))
+        if (StringIsArgumentKey(escapedItem))
         {
           firstArgumentReached = true;
-          result.Arguments.Add(RemoveArgumentPrefix(split[0]), split.Length > 1 ? split[1] : "");
+          result.Arguments.Add(RemoveArgumentPrefix(split[0]), split.Length > 1 ? UnescapeInputValue(split[1]) : "");
           continue;
         }
 
@@ -74,7 +90,7 @@ namespace SH.ConsoleApp.Input
         // If the command has been processed and the first argument has been read, there can be no more options.
         if (!firstArgumentReached)
         {
-          result.Options.Add(split[0], split.Length > 1 ? split[1] : "");
+          result.Options.Add(split[0], split.Length > 1 ? UnescapeInputValue(split[1]) : "");
           continue;
         }
 
@@ -91,17 +107,51 @@ namespace SH.ConsoleApp.Input
 
     private bool StringIsArgumentKey(string value)
     {
-      return value.StartsWith(_argumentKeyPrefix);
+      return value.StartsWith(ArgumentKeyPrefix);
     }
 
     private string RemoveArgumentPrefix(string value)
     {
-      if (value.StartsWith(_argumentKeyPrefix))
+      if (value.StartsWith(ArgumentKeyPrefix))
       {
-        return value.Substring(_argumentKeyPrefix.Length, value.Length - _argumentKeyPrefix.Length);
+        return value.Substring(ArgumentKeyPrefix.Length, value.Length - ArgumentKeyPrefix.Length);
       }
       return value;
+    }
 
+    private string EscapeInputValue(string value)
+    {
+      // Loop goes from the back to the front so it can just replace the colons with the character sequence
+      // while looping through without messing up the loop.
+      var quoteSequenceStarted = false;
+      for (var i = value.Length - 1; i >= 0; i--)
+      {
+        var currentChar = value[i];
+
+        if (currentChar == '"')
+        {
+          quoteSequenceStarted = !quoteSequenceStarted;
+          continue;
+        }
+
+        if (quoteSequenceStarted && _escapeCharacters.ContainsKey(currentChar))
+        {
+          value = value.Remove(i, 1); // Remove the character
+          value = value.Insert(i, _escapeCharacters[currentChar]); // Insert the escape sequence
+        }
+      }
+
+      return value;
+    }
+
+    private string UnescapeInputValue(string value)
+    {
+      foreach (var escapeCharacter in _escapeCharacters)
+      {
+        value = value.Replace(escapeCharacter.Value, escapeCharacter.Key.ToString());
+      }
+
+      return value.Replace("\"", ""); // Remove quotes.
     }
   }
 }

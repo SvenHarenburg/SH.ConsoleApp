@@ -139,11 +139,29 @@ namespace SH.ConsoleApp.Tests.Input
       [Test]
       [TestCase(new object[] { "version", "option1:value1", "option2", "--ArgumentKey1:Argument:Value1", "--ArgumentKey2" })]
       [TestCase(new object[] { "version", "option1:value:1", "option2", "--ArgumentKey1:ArgumentValue1" })]
-      public void ThrowsFormatExceptionWhenUsingColon(params string[] args)
+      public void ThrowsFormatExceptionWhenUsingColonOutsideQuotes(params string[] args)
       {
 
         var parser = new InputParser();
         Assert.Throws<FormatException>(() => parser.ParseInput(args, _availableCommands));
+      }
+
+      [Test]
+      [TestCase(new string[] { "version", "option1:\"value:1\"" }, new string[] { "value:1" })]
+      [TestCase(new string[] { "version", "option1:\"value:with:multiple:colons\"" }, new string[] { "value:with:multiple:colons" })]
+      public void AcceptsColonsInOptionValueWhenUsingQuotes(string[] args, params string[] desiredOptionValues)
+      {
+        var parser = new InputParser();
+        var result = parser.ParseInput(args, _availableCommands);
+
+        Assert.Multiple(() =>
+       {
+         var values = result.Options.Values.ToList();
+         for (int i = 0; i < result.Options.Count; i++)
+         {
+           Assert.AreEqual(values[i], desiredOptionValues[i]);
+         }
+       });
       }
     }
   }
