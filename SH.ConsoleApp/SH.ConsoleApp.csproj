@@ -8,7 +8,7 @@
     <Authors>Sven Harenburg</Authors>
     <Description>SH.ConsoleApp is a small framework aiming to help with creating .NET Console Applications by utilizing the power of reflection and the .NET Generic Host.</Description>
     <Copyright>Sven Harenburg</Copyright>
-    <Version>1.0.1</Version>
+    <Version>1.0.2</Version>
   </PropertyGroup>
 
   <ItemGroup>
