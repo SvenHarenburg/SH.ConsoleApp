@@ -134,9 +134,10 @@ namespace SH.ConsoleApp.Core
 
     public bool CanRunCommand(RunCommandResult result)
     {
-      return !result.InvalidOptions.Any()
-        || !result.InvalidArguments.Any()
-        || !result.NonOptionalUnknownParameters.Any();
+      if (result.InvalidOptions.Any()) return false;
+      if (result.InvalidArguments.Any()) return false;
+      if (result.NonOptionalUnknownParameters.Any()) return false;
+      return true;
     }
 
     /// <summary>
