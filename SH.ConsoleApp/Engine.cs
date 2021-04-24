@@ -71,7 +71,11 @@ namespace SH.ConsoleApp
             if (commandMatch != null)
             {
               // Run command using CommandRunner:
-              _commandRunner.RunCommand(commandMatch.Command, parsedInput.Options, parsedInput.Arguments);
+              var runCommandResult = _commandRunner.RunCommand(commandMatch.Command, parsedInput.Options, parsedInput.Arguments);
+              if (!runCommandResult.Success)
+              {
+                AnalyseRunCommandResult(runCommandResult);
+              }
             }
             else
             {
@@ -93,6 +97,12 @@ namespace SH.ConsoleApp
       });
 
       return Task.CompletedTask;
+    }
+
+    private void AnalyseRunCommandResult(RunCommandResult runCommandResult)
+    {
+
+      // TODO: Called when runCommandResult.Success == false. Analyse why and throw exceptions or something.
     }
 
     public Task StopAsync(CancellationToken cancellationToken)
