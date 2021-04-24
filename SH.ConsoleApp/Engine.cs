@@ -4,8 +4,10 @@ using Microsoft.Extensions.Logging;
 using SH.ConsoleApp.Core;
 using SH.ConsoleApp.Input;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -14,6 +16,8 @@ namespace SH.ConsoleApp
   internal class Engine : IHostedService
   {
     private int? _exitCode;
+
+    private const ConsoleColor ColorError = ConsoleColor.Red;
 
     private readonly ILogger _logger;
     private readonly IHostApplicationLifetime _appLifetime;
@@ -99,12 +103,6 @@ namespace SH.ConsoleApp
       return Task.CompletedTask;
     }
 
-    private void AnalyseRunCommandResult(RunCommandResult runCommandResult)
-    {
-
-      // TODO: Called when runCommandResult.Success == false. Analyse why and throw exceptions or something.
-    }
-
     public Task StopAsync(CancellationToken cancellationToken)
     {
       _logger.LogDebug($"Exiting with return code: {_exitCode}");
@@ -112,6 +110,70 @@ namespace SH.ConsoleApp
       // Exitcode may be null if the user cancelled cia Ctrl+C/SIGTERM
       Environment.ExitCode = _exitCode.GetValueOrDefault(-1);
       return Task.CompletedTask;
+    }
+
+    private void AnalyseRunCommandResult(RunCommandResult runCommandResult)
+    {
+      // Two cases:
+      // 1. There are non optional parameters which are not marked as either Option or Argument.
+      //    This is an exception-case because that is a wrong declaration of a Command-method.
+      // 2. There are invalid Options or Arguments.
+      //    This is NOT an exception-case because that is an error by the user which provided wrong input.
+
+      // Case 1:
+      if (runCommandResult.NonOptionalUnknownParameters.Any())
+      {
+        WriteNonOptionalUnknownParametersError(runCommandResult.NonOptionalUnknownParameters);
+      }
+
+      // Case 2:
+      if (runCommandResult.InvalidOptions.Any() || runCommandResult.InvalidArguments.Any())
+      {
+        WriteInvalidOptionOrArgument(runCommandResult);
+      }
+    }
+
+
+    private void WriteNonOptionalUnknownParametersError(List<ParameterInfo> parameters)
+    {
+      var message = new StringBuilder();
+      var commandMethod = parameters[0].Member;
+      var commandGroup = commandMethod.DeclaringType;
+      message.AppendLine($"Invalid Command-method declaration for \"{commandGroup.Name}.{commandMethod.Name}\". The method contains non-optional parameters which are not marked as a CommandOption or CommandArgument. Invalid parameters:");
+
+      foreach (var parameter in parameters)
+      {
+        message.AppendLine($"- {parameter.Name}");
+      }
+
+      WriteError(message.ToString());
+    }
+
+    private void WriteInvalidOptionOrArgument(RunCommandResult runCommandResult)
+    {
+      var message = new StringBuilder();
+      message.AppendLine($"The Command could not be run. The following errors occured: ");
+
+
+      foreach (var option in runCommandResult.InvalidOptions)
+      {
+        message.AppendLine($"- Invalid value for Option: {option.Key}");
+      }
+
+      foreach (var argument in runCommandResult.InvalidArguments)
+      {
+        message.AppendLine($"- Invalid value for Argument: {argument.Key}");
+      }
+
+      Console.WriteLine(message.ToString());
+    }
+
+    private void WriteError(string message)
+    {
+      var colorBefore = Console.ForegroundColor;
+      Console.ForegroundColor = ColorError;
+      Console.WriteLine(message);
+      Console.ForegroundColor = colorBefore;
     }
 
     private void WriteCommandNotFound()
